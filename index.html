@@ -135,10 +135,43 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&am
 const uid = () => "id-"+(typeof crypto!=="undefined"&&crypto.randomUUID ? crypto.randomUUID():Date.now().toString(36)+"-"+Math.random().toString(36).slice(2));
 const makeContainer = (id, name, type="donkey", maxLoad="") => ({id,type,name,items:{},...(type===CUSTOM_TYPE?{maxLoad:String(maxLoad??"")}:{} )});
 const makeDonkey = (id="asino-1",name="Asino 1") => makeContainer(id,name,"donkey");
-const initialState = () => ({version:1,containers:{"asino-1":makeDonkey()}});
+// Inventario iniziale ricostruito dal foglio del quartiermastro (18/11/2026).
+// I pesi sono per riga; i barili a metà sono stimati a 9 st ciascuno.
+const QUARTERMASTER_ITEMS = [
+  ["Corda (50 piedi)","1","Gruppo"],
+  ["Razioni Thalion (7)","1","Thalion"],
+  ["Razioni Sissor (7)","1","Sissor"],
+  ["Sacco grande vuoto 1 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 2 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 3 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 4 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 5 (capacità 6 st)","1/6","Gruppo"],
+  ["Razioni Esperya (3)","1/2","Esperya"],
+  ["Torce Ka-Balth (6)","1","Ka-Balth"],
+  ["Razioni Ka-Balth (2)","1","Ka-Balth"],
+  ["Daga Ka-Balth","1/6","Ka-Balth"],
+  ["Warhammer Ka-Balth","1/6","Ka-Balth"],
+  ["Lancia Ka-Balth","1","Ka-Balth"],
+  ["Spada Thalion","1/6","Thalion"],
+  ["Tende (3)","3","Gruppo"],
+  ["Lanterna","1/6","Gruppo"],
+  ["Fiasche olio (2)","1/6","Gruppo"],
+  ["Fiasche olio magico (2)","1/6","Gruppo"]
+];
+function quartermasterState(){
+  const toto=makeDonkey("asino-1","Asin-Toto"), tomatico=makeDonkey("asino-2","Asin-Tomatico"), bauletto=makeDonkey("asino-3","Bauletto");
+  toto.items.barile_acqua_1={id:"barile_acqua_1",name:"Barile d’acqua 1 (metà pieno)",weight:"9",owner:"Gruppo"};
+  tomatico.items.barile_acqua_2={id:"barile_acqua_2",name:"Barile d’acqua 2 (metà pieno)",weight:"9",owner:"Gruppo"};
+  QUARTERMASTER_ITEMS.forEach(([name,weight,owner],i)=>{const id="qm_"+(i+1);bauletto.items[id]={id,name,weight,owner};});
+  return {version:1,containers:{"asino-1":toto,"asino-2":tomatico,"asino-3":bauletto}};
+}
+const initialState = () => quartermasterState();
 const cloudMode = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId && FIREBASE_CONFIG.databaseURL);
 let firebase = null, db = null, auth = null, authUser = null, cloudConnected = false, cloudReceived = false, connectionError = "";
 let state = cloudMode ? load(CLOUD_CACHE_KEY,{version:1,containers:{}}) : load(STORAGE_KEY,initialState());
+if(!cloudMode && Object.keys(state.containers||{}).length===1 && state.containers["asino-1"] && !Object.keys(state.containers["asino-1"].items||{}).length){
+  state=quartermasterState();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+}
 let selectedDonkey = localStorage.getItem(SELECTED_KEY)||"asino-1", selectedItem = null, dialogMode = "", modalSubmit = null, toastTimer;
 function load(key,fallback){try{return sanitizeState(JSON.parse(localStorage.getItem(key)))??fallback;}catch{return fallback}}
 function sanitizeState(raw){
