@@ -74,14 +74,14 @@
     <section class="panel items-panel" aria-label="Oggetti trasportati"><div class="items-heading"><h2>Oggetti trasportati</h2><span class="items-headcount" id="ownerSummary">Seleziona un oggetto per gestirlo</span></div><div id="itemsList"></div></section>
     <div class="actionbar"><button class="btn" data-action="add-item" id="addItemButton">＋ Aggiungi oggetto</button><button class="btn secondary" data-action="remove-item" id="removeItemButton">− Rimuovi oggetto</button><button class="btn secondary" data-action="move-item" id="moveItemButton">⇄ Sposta altrove</button></div>
   </main>
-  <footer class="bottom-note"><span>ACKS II Revised · Capacità asino: 15 / 30 stone · v1.1</span><span class="backup-tools"><button class="linkbtn" data-action="export">Esporta backup</button><button class="linkbtn" id="importButton" data-action="import">Importa backup</button></span></footer>
+  <footer class="bottom-note"><span>ACKS II Revised · Capacità asino: 15 / 30 stone · v1.1.1</span><span class="backup-tools"><button class="linkbtn" data-action="export">Esporta backup</button><button class="linkbtn" id="importButton" data-action="import">Importa backup</button></span></footer>
 </div>
 <dialog id="modal" aria-label="Gestione oggetti"><div class="modal-inner"><h2 class="modal-title" id="modalTitle"></h2><p class="modal-sub" id="modalSub"></p><form id="modalForm"><div class="fields" id="modalFields"></div><div class="form-error" id="modalError" role="alert"></div><div class="modal-actions"><button type="button" class="btn ghost" id="modalCancel">Annulla</button><button type="submit" class="btn" id="modalConfirm">Conferma</button></div></form></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="importFile" accept="application/json,.json" class="hidden">
 <script type="module">
 /*
- * ACKS ASINELLI v1.1 — CONFIGURAZIONE CLOUD
+ * ACKS ASINELLI v1.1.1 — CONFIGURAZIONE CLOUD
  * Lascia i campi vuoti per la modalità locale (nessuna sincronizzazione).
  * Per la sincronizzazione online inserisci qui i parametri WEB di Firebase
  * (Project settings > Your apps > Web app) e configura Realtime Database.
@@ -212,8 +212,8 @@ function openDialog({title,sub="",fields="",confirm="Conferma",onSubmit}){
   $("modalTitle").textContent=title;$("modalSub").textContent=sub;$("modalFields").innerHTML=fields;$("modalConfirm").textContent=confirm;$("modalError").textContent="";$("modalConfirm").disabled=false;modalSubmit=onSubmit;$("modal").showModal();$("modalFields").querySelector("input,select")?.focus();
 }
 function field(name,title,value="",opts={}){return `<label class="field">${escapeHtml(title)}<input id="form-${escapeHtml(name)}" name="${escapeHtml(name)}" type="${opts.type||"text"}" value="${escapeHtml(value)}" maxlength="${opts.maxlength||100}" ${opts.placeholder?`placeholder="${escapeHtml(opts.placeholder)}"`:""} ${opts.autocomplete?`autocomplete="${opts.autocomplete}"`:"autocomplete=off"} ${opts.list?`list="${escapeHtml(opts.list)}"`:""} ${opts.required?"required":""}></label>`}
-function ownerField(value="Gruppo"){
-  return `<div class="field owner-field"><label for="form-owner">Proprietario</label><div class="owner-combo"><input id="form-owner" name="owner" type="text" value="${escapeHtml(value)}" maxlength="80" autocomplete="off" aria-haspopup="listbox" aria-controls="owner-options" aria-expanded="false" required><button type="button" class="owner-toggle" id="ownerToggle" aria-controls="owner-options" aria-expanded="false" aria-label="Apri elenco proprietari">⌄</button></div><div class="owner-options hidden" id="owner-options" role="listbox" aria-label="Scegli proprietario"></div><div class="owner-picker-hint">Scegli un nome dall’elenco oppure scrivine uno nuovo.</div></div>`;
+function ownerField(value=""){
+  return `<div class="field owner-field"><label for="form-owner">Proprietario</label><div class="owner-combo"><input id="form-owner" name="owner" type="text" value="${escapeHtml(value)}" maxlength="80" placeholder="Scegli o scrivi un proprietario" autocomplete="off" aria-haspopup="listbox" aria-controls="owner-options" aria-expanded="false" required><button type="button" class="owner-toggle" id="ownerToggle" aria-controls="owner-options" aria-expanded="false" aria-label="Apri elenco proprietari">⌄</button></div><div class="owner-options hidden" id="owner-options" role="listbox" aria-label="Scegli proprietario"></div><div class="owner-picker-hint">Scegli un nome dall’elenco oppure scrivine uno nuovo.</div></div>`;
 }
 function showOwnerMenu(filter=false){const menu=$("owner-options"),input=$("form-owner"),toggle=$("ownerToggle");if(!menu||!input)return;
   const query=filter?input.value.trim().toLocaleLowerCase("it"):"";const matches=OWNERS.filter(o=>!query||o.name.toLocaleLowerCase("it").includes(query));
@@ -224,8 +224,8 @@ function hideOwnerMenu(){const menu=$("owner-options");menu?.classList.add("hidd
 function ownerMenuVisible(){return !!$("owner-options")&&!$("owner-options").classList.contains("hidden");}
 
 function openAddItem(item=null){const c=current();if(!c||!canEdit())return;const edit=!!item;
-  openDialog({title:edit?"Modifica oggetto":"Aggiungi oggetto",sub:edit?"Aggiorna i dati del carico.":"Oggetto destinato a "+c.name+".",fields:field("name","Nome oggetto",item?.name||"",{required:true,maxlength:120,placeholder:"Es. Corda di canapa"})+field("weight","Peso (stone)",item?.weight??"",{required:true,placeholder:"Es. 1/6, 1 o 2 1/2"})+ownerField(item?.owner??"Gruppo"),confirm:edit?"Salva modifiche":"Aggiungi oggetto",onSubmit:async()=>{
-    const name=$("form-name").value.trim(),weight=$("form-weight").value.trim(),owner=canonicalOwner($("form-owner").value.trim())||"Gruppo";
+  openDialog({title:edit?"Modifica oggetto":"Aggiungi oggetto",sub:edit?"Aggiorna i dati del carico.":"Oggetto destinato a "+c.name+".",fields:field("name","Nome oggetto",item?.name||"",{required:true,maxlength:120,placeholder:"Es. Corda di canapa"})+field("weight","Peso (stone)",item?.weight??"",{required:true,placeholder:"Es. 1/6, 1 o 2 1/2"})+ownerField(item?.owner??""),confirm:edit?"Salva modifiche":"Aggiungi oggetto",onSubmit:async()=>{
+    const name=$("form-name").value.trim(),weight=$("form-weight").value.trim(),owner=canonicalOwner($("form-owner").value.trim());
     if(!name)throw Error("Inserisci un nome.");if(parseWeight(weight)===null)throw Error("Peso non valido. Usa 1/6, 0,5, 2 1/2 oppure 1.");
     if(!owner)throw Error("Inserisci un proprietario.");
     const id=item?.id||uid();if(await writePatch({[`containers/${c.id}/items/${id}`]:{id,name,weight,owner}})){selectedItem=id;render();return true;}return false;
