@@ -58,7 +58,7 @@
 <div class="shell" id="app">
   <header class="hero">
     <div class="brand"><div class="crest" aria-hidden="true">🐴</div><div><div class="eyebrow">Adventurer Conqueror King System</div><h1>ACKS Asinelli</h1><p class="subtitle">Il carico del gruppo, sempre sotto controllo.</p></div></div>
-    <div class="auth-area"><div class="tag" id="syncStatus"><span class="dot"></span> Caricamento…</div><button id="authButton" class="btn ghost small hidden" data-action="auth"></button></div>
+    <div class="auth-area"><button type="button" id="soundToggle" class="btn ghost small" data-action="toggle-sound" aria-label="Disattiva audio" aria-pressed="true">🔊 Audio</button><div class="tag" id="syncStatus"><span class="dot"></span> Caricamento…</div><button id="authButton" class="btn ghost small hidden" data-action="auth"></button></div>
   </header>
   <div class="barhead"><span class="section-label">Animali e contenitori</span><span class="mini-note" id="groupSummary"></span></div>
   <nav class="donkey-tabs" id="tabs" aria-label="Scegli animale o contenitore"></nav>
@@ -74,14 +74,14 @@
     <section class="panel items-panel" aria-label="Oggetti trasportati"><div class="items-heading"><h2>Oggetti contenuti</h2><span class="items-headcount" id="ownerSummary">Seleziona un oggetto per gestirlo</span></div><div id="itemsList"></div></section>
     <div class="actionbar"><button class="btn" data-action="add-item" id="addItemButton">＋ Aggiungi oggetto</button><button class="btn secondary" data-action="remove-item" id="removeItemButton">− Rimuovi oggetto</button><button class="btn secondary" data-action="move-item" id="moveItemButton">⇄ Sposta altrove</button></div>
   </main>
-  <footer class="bottom-note"><span>ACKS II Revised · Animali da soma e contenitori · v1.2.0</span><span class="backup-tools"><button class="linkbtn" data-action="export">Esporta backup</button><button class="linkbtn" id="importButton" data-action="import">Importa backup</button></span></footer>
+  <footer class="bottom-note"><span>ACKS II Revised · Animali da soma e contenitori · v1.2.2</span><span class="backup-tools"><button class="linkbtn" data-action="export">Esporta backup</button><button class="linkbtn" id="importButton" data-action="import">Importa backup</button></span></footer>
 </div>
 <dialog id="modal" aria-label="Gestione oggetti"><div class="modal-inner"><h2 class="modal-title" id="modalTitle"></h2><p class="modal-sub" id="modalSub"></p><form id="modalForm"><div class="fields" id="modalFields"></div><div class="form-error" id="modalError" role="alert"></div><div class="modal-actions"><button type="button" class="btn ghost" id="modalCancel">Annulla</button><button type="submit" class="btn" id="modalConfirm">Conferma</button></div></form></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="importFile" accept="application/json,.json" class="hidden">
 <script type="module">
 /*
- * ACKS ASINELLI v1.2.0 — CONFIGURAZIONE CLOUD
+ * ACKS ASINELLI v1.2.2 — CONFIGURAZIONE CLOUD
  * Lascia i campi vuoti per la modalità locale (nessuna sincronizzazione).
  * Per la sincronizzazione online inserisci qui i parametri WEB di Firebase
  * (Project settings > Your apps > Web app) e configura Realtime Database.
@@ -297,12 +297,18 @@ function showOwnerMenu(filter=false){const menu=$("owner-options"),input=$("form
 function hideOwnerMenu(){const menu=$("owner-options");menu?.classList.add("hidden");$("form-owner")?.setAttribute("aria-expanded","false");$("ownerToggle")?.setAttribute("aria-expanded","false");}
 function ownerMenuVisible(){return !!$("owner-options")&&!$("owner-options").classList.contains("hidden");}
 
+const SOUND_KEY="acks-asinelli-sound-enabled";
+let soundEnabled=localStorage.getItem(SOUND_KEY)!=="false";
+const donkeySound=new Audio("./sfxmint-donkey-bray-03.wav");donkeySound.preload="auto";
+function updateSoundToggle(){const b=$("soundToggle");if(!b)return;b.textContent=soundEnabled?"🔊 Audio":"🔇 Muto";b.setAttribute("aria-pressed",String(soundEnabled));b.setAttribute("aria-label",soundEnabled?"Disattiva audio":"Attiva audio");}
+function playDonkeyBray(){if(!soundEnabled)return;try{donkeySound.pause();donkeySound.currentTime=0;const p=donkeySound.play();if(p?.catch)p.catch(()=>{});}catch(e){}}
+updateSoundToggle();
 function openAddItem(item=null){const c=current();if(!c||!canEdit())return;const edit=!!item;
   openDialog({title:edit?"Modifica oggetto":"Aggiungi oggetto",sub:edit?"Aggiorna i dati del carico.":"Oggetto destinato a "+c.name+".",fields:field("name","Nome oggetto",item?.name||"",{required:true,maxlength:120,placeholder:"Es. Corda di canapa"})+field("weight","Peso (stone)",item?.weight??"",{required:true,placeholder:"Es. 1/6, 1 o 2 1/2"})+ownerField(item?.owner??""),confirm:edit?"Salva modifiche":"Aggiungi oggetto",onSubmit:async()=>{
     const name=$("form-name").value.trim(),weight=$("form-weight").value.trim(),owner=canonicalOwner($("form-owner").value.trim());
     if(!name)throw Error("Inserisci un nome.");if(parseWeight(weight)===null)throw Error("Peso non valido. Usa 1/6, 0,5, 2 1/2 oppure 1.");
     if(!owner)throw Error("Inserisci un proprietario.");
-    const id=item?.id||uid();if(await writePatch({[`containers/${c.id}/items/${id}`]:{id,name,weight,owner}})){selectedItem=id;render();return true;}return false;
+    const id=item?.id||uid();if(await writePatch({[`containers/${c.id}/items/${id}`]:{id,name,weight,owner}})){selectedItem=id;render();if(!edit)playDonkeyBray();return true;}return false;
   }});
 }
 function containerFields(c=null){
@@ -343,7 +349,7 @@ function addDonkey(){if(!canEdit())return;
   openDialog({title:"Aggiungi animale o contenitore",sub:"Scegli un animale del manuale oppure un baule, una carovana o un deposito con capacità personalizzata.",fields:containerFields(),confirm:"Aggiungi",onSubmit:async()=>{
     const {name,type,maxLoad}=readContainerFields(),id=uid();
     if(await writePatch({[`containers/${id}`]:makeContainer(id,name,type,maxLoad)})){
-      selectedDonkey=id;selectedItem=null;storeSelected();render();return true;}return false;
+      selectedDonkey=id;selectedItem=null;storeSelected();render();playDonkeyBray();return true;}return false;
   }});
   $("form-name").dataset.autoName="true";
   updateContainerFields();
@@ -388,7 +394,7 @@ $("app").addEventListener("click",e=>{const b=e.target.closest("[data-action]");
     case "select-item":{const id=b.dataset.id;if(selectedItem===id&&canEdit())openAddItem(current()?.items?.[id]);else{selectedItem=id;render();}break;}
     case "add-donkey":addDonkey();break;case "rename":renameDonkey();break;case "add-item":openAddItem();break;
     case "remove-item":removeItem();break;case "move-item":moveItem();break;case "auth":login();break;
-    case "export":downloadBackup();break;case "import":$("importFile").click();break;
+    case "toggle-sound":soundEnabled=!soundEnabled;localStorage.setItem(SOUND_KEY,String(soundEnabled));updateSoundToggle();break;case "export":downloadBackup();break;case "import":$("importFile").click();break;
   }
 });
 $("importFile").addEventListener("change",async e=>{const file=e.target.files?.[0];if(file)await importBackup(file);e.target.value=""});
