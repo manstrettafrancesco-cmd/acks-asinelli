@@ -439,7 +439,7 @@ async function initCloud(){
   const CDN="https://www.gstatic.com/firebasejs/10.12.2/";
   const [appModule,dbModule,authModule]=await Promise.all([import(CDN+"firebase-app.js"),import(CDN+"firebase-firestore.js"),import(CDN+"firebase-auth.js")]);
   const app=appModule.initializeApp(FIREBASE_CONFIG);db=dbModule.getFirestore(app);auth=authModule.getAuth(app);
-  const inventoryRef=dbModule.doc(db,"campaigns","main");
+  const inventoryRef=dbModule.doc(db,"acksAsinelli","v1");
   firebase={
     applyPatch:async patch=>dbModule.runTransaction(db,async tx=>{
       const snap=await tx.get(inventoryRef);
