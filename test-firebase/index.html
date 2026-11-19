@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111a1b">
+  <meta name="description" content="ACKS Asinelli — inventario condiviso del gruppo e gestione dei carichi.">
+  <title>ACKS Asinelli · Quartiermastro · v1.3.0</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10191b;--panel:#1a2526;--panel2:#202e2e;--cream:#ece8d8;--muted:#a5b4ae;--line:#354542;--gold:#e6be75;--green:#82c4a1;--red:#ef9087;--amber:#edc16d;--shadow:0 16px 44px rgba(0,0,0,.23)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 12% -9%,#253a37 0,transparent 35%),radial-gradient(ellipse at 95% 0,#2c2d26 0,transparent 30%),var(--bg);color:var(--cream);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;min-height:100vh}
+    button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.37;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+    .shell{max-width:1100px;margin:auto;padding:25px clamp(14px,3.5vw,38px) 120px}
+    .eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase}
+    .hero{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;margin:5px 0 25px;flex-wrap:wrap}
+    .brand{display:flex;gap:16px;align-items:center}.crest{width:66px;height:66px;background:#263833;border:1px solid #5c6954;border-radius:17px;display:grid;place-items:center;font-size:38px;box-shadow:var(--shadow)}
+    h1{font:700 clamp(30px,4vw,42px)/1.06 Georgia,serif;letter-spacing:.01em;margin:4px 0}.subtitle{color:var(--muted);font-size:13px;margin:7px 0 0}
+    .auth-area{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;margin-top:9px}
+    .tag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:30px;white-space:nowrap}
+    .dot{width:7px;height:7px;border-radius:50%;background:#c6a062;flex:none}.dot.good{background:var(--green)}.dot.bad{background:var(--red)}
+    .btn{border:1px solid #a78e61;color:#14201e;background:var(--gold);border-radius:11px;font-weight:700;font-size:13px;padding:11px 15px;transition:transform .12s,filter .12s;white-space:nowrap}.btn:not(:disabled):active{transform:scale(.98)}.btn:hover:not(:disabled){filter:brightness(1.07)}
+    .btn.secondary{background:#243433;color:var(--cream);border-color:#5b6e62}.btn.ghost{background:transparent;color:var(--cream);border-color:var(--line)}.btn.danger{background:#50302f;color:#f8d0cc;border-color:#8d554e}.btn.small{padding:8px 12px;font-size:12px}
+    .barhead{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}.section-label{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+    .donkey-tabs{display:flex;align-items:center;gap:9px;overflow:auto;padding:5px 2px 16px;scrollbar-width:thin}.donkey-tab{display:flex;flex-shrink:0;align-items:center;gap:8px;background:#202d2b;border:1px solid #45534c;color:var(--cream);padding:11px 16px;border-radius:13px;font-weight:700;font-size:13px;min-height:47px;max-width:230px}.donkey-tab span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.donkey-tab.active{background:#35473c;border-color:var(--gold);color:#fae9c6}.donkey-tab.new{background:transparent;border-style:dashed;color:var(--gold)}.donkey-tab.remove-tab{background:#3b2929;border-color:#8d554e;color:#f8c4be}
+    .panel{background:linear-gradient(160deg,rgba(36,53,49,.96),rgba(24,35,35,.98));border:1px solid var(--line);border-radius:19px;box-shadow:var(--shadow)}
+    .overview{padding:clamp(19px,3vw,30px);margin:0 0 19px}.overview-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}.donkey-name{font:700 clamp(26px,3vw,35px)/1.15 Georgia,serif;margin:4px 0 2px;overflow-wrap:anywhere}.mini-note{font-size:12px;color:var(--muted)}
+    .meter-info{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:23px 0 8px}.meter-info .big{font:700 30px/1 Georgia,serif;font-variant-numeric:tabular-nums}.meter-info .unit{font-size:15px;color:var(--muted)}
+    .meter{height:14px;background:#111d1c;border:1px solid #4a5750;border-radius:20px;position:relative;overflow:hidden}.meter-fill{height:100%;background:linear-gradient(90deg,#6da98e,#b6d3a2);border-radius:20px;transition:width .25s}.meter-fill.warn{background:linear-gradient(90deg,#cda05b,#edc16d)}.meter-fill.bad{background:linear-gradient(90deg,#b9594d,#e87d77)}.meter-mark{position:absolute;left:50%;height:100%;border-left:2px solid #e6e5d3;opacity:.9;top:0}
+    .meter-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:7px}.status-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:15px;font-size:13px}.status-text{color:var(--green);font-weight:700}.status-text.warn{color:var(--amber)}.status-text.bad{color:var(--red)}
+    .items-panel{overflow:hidden}.items-heading{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:19px 23px;border-bottom:1px solid var(--line)}.items-heading h2{font:700 23px Georgia,serif;margin:0}.items-headcount{color:var(--muted);font-size:12px}
+    .item-row{width:100%;display:grid;grid-template-columns:35px minmax(0,1fr) auto 30px;gap:12px;align-items:center;min-height:75px;padding:13px 23px;border:0;border-bottom:1px solid #34433f;background:transparent;color:var(--cream);text-align:left}.item-row:last-child{border-bottom:0}.item-row:hover{background:#263633}.item-row.selected{background:#304638}.choice{width:19px;height:19px;border:2px solid #879a8b;border-radius:50%;display:inline-block;position:relative}.item-row.selected .choice{border-color:var(--gold)}.item-row.selected .choice:before{content:"";position:absolute;inset:4px;background:var(--gold);border-radius:50%}.item-name{font-weight:700;font-size:14px;word-break:break-word}.item-owner{font-size:12px;color:var(--muted);margin-top:2px}.owner-chip{--tag-fg:#d8dedc;--tag-bg:#33423f;--tag-border:#5a6b66;display:inline-flex;align-items:center;gap:6px;width:fit-content;max-width:100%;border:1px solid var(--tag-border);border-radius:7px;background:var(--tag-bg);color:var(--tag-fg);font-weight:750;font-size:11px;letter-spacing:.01em;line-height:1.3;padding:3px 8px;vertical-align:middle;overflow-wrap:anywhere}
+
+    /* Gruppi visivi per proprietario: nessuna modifica ai dati salvati */
+    .owner-section{border-bottom:1px solid #34433f}
+    .owner-section:last-child{border-bottom:0}
+    .owner-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px;background:#243630;border-bottom:1px solid #3d5047}
+    .owner-section-stats{font-size:12px;color:var(--muted);text-align:right}
+    .owner-section .item-row:last-child{border-bottom:0}
+    @media(max-width:550px){.owner-section-head{padding:11px 13px}.owner-section-stats{font-size:11px}}
+    .owner-chip::before{content:"";width:7px;height:7px;min-width:7px;border-radius:50%;background:var(--tag-fg)}
+    .owner-gruppo{--tag-fg:#f3d38b;--tag-bg:#413827;--tag-border:#786740}
+    .owner-kabalth{--tag-fg:#b9c7ff;--tag-bg:#303854;--tag-border:#58668d}
+    .owner-seville{--tag-fg:#f5a4c6;--tag-bg:#49303f;--tag-border:#86526a}
+    .owner-sissor{--tag-fg:#ffb283;--tag-bg:#493626;--tag-border:#875b3f}
+    .owner-esperya{--tag-fg:#9ce1e5;--tag-bg:#244448;--tag-border:#487c7d}
+    .owner-thalion{--tag-fg:#b1e3a8;--tag-bg:#2c4530;--tag-border:#4f7850}
+    .owner-combo{display:flex;position:relative;align-items:stretch}
+    .owner-combo input{padding-right:50px}
+    .owner-toggle{position:absolute;right:4px;top:4px;bottom:4px;display:grid;place-items:center;width:42px;background:#263b36;color:var(--gold);border:1px solid #5c715f;border-radius:8px;font-size:19px;line-height:1}
+    .owner-toggle[aria-expanded="true"]{background:#425446;border-color:var(--gold)}
+    .owner-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;max-height:230px;overflow-y:auto;padding:7px;margin-top:3px;border:1px solid #657968;border-radius:11px;background:#172522}
+    .owner-option{background:transparent;color:var(--cream);border:0;border-radius:8px;text-align:left;padding:9px 8px;min-height:42px}
+    .owner-option:hover,.owner-option:focus-visible{background:#30463c;outline:1px solid var(--gold)}
+    .owner-custom-hint{grid-column:1/-1;margin:5px 8px;color:var(--muted);font-size:12px;font-weight:400;overflow-wrap:anywhere}
+    .owner-picker-hint{font-size:11px;font-weight:400;color:var(--muted)}
+    .item-weight{color:var(--gold);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}.edit-glyph{color:var(--muted);font-size:18px;text-align:right}.empty{text-align:center;padding:46px 19px 49px}.empty-symbol{font-size:38px;margin-bottom:10px}.empty-title{font:700 21px Georgia,serif;margin:3px 0}.empty p{color:var(--muted);font-size:13px;margin:7px 0 17px}
+    .actionbar{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px;margin:18px 0}.actionbar .btn{min-height:49px;white-space:normal}
+    .bottom-note{color:var(--muted);font-size:11px;margin:22px 0 0;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}.backup-tools{display:flex;gap:15px}.linkbtn{background:transparent;border:0;padding:0;color:#d6be87;text-decoration:underline;text-underline-offset:3px;font-size:12px}
+    .limits-note{font-size:12px;color:var(--muted);margin-top:9px}.blocked{padding:15px;border:1px solid #635843;border-radius:12px;background:#383227;color:#e8d0a2;margin:12px 0;font-size:13px}.hidden{display:none!important}
+    dialog{color:var(--cream);background:#1d2c2b;border:1px solid #77856e;border-radius:18px;box-shadow:0 25px 70px rgba(0,0,0,.7);width:min(100% - 24px,510px);padding:0;max-height:min(90vh,850px)}dialog::backdrop{background:rgba(3,11,12,.76);backdrop-filter:blur(3px)}.modal-inner{padding:26px}.modal-title{font:700 26px Georgia,serif;margin:0 0 6px}.modal-sub{font-size:13px;color:var(--muted);margin:0 0 20px}.fields{display:grid;gap:14px}.field{display:grid;gap:7px;font-size:12px;font-weight:700;color:var(--muted)}.field input,.field select{width:100%;border:1px solid #55685e;border-radius:10px;background:#101c1b;color:var(--cream);padding:12px 13px;font-size:15px;min-height:46px}.field input::placeholder{color:#81948c}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px;flex-wrap:wrap}.tip{color:var(--muted);font-size:12px;margin:7px 0 0}.form-error{color:var(--red);font-size:12px;min-height:14px;margin:8px 0 0}.toast{position:fixed;z-index:20;bottom:24px;left:50%;transform:translate(-50%,25px);background:#e7d1a5;color:#1c2522;padding:12px 18px;box-shadow:var(--shadow);border-radius:12px;font-size:13px;font-weight:700;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:620px){.shell{padding-top:18px}.crest{width:52px;height:52px;font-size:30px;border-radius:13px}.hero{margin-bottom:22px}.auth-area{width:100%;justify-content:flex-start}.item-row{padding:13px 14px;gap:8px;grid-template-columns:24px minmax(0,1fr) auto 20px}.items-heading{padding:17px}.actionbar{grid-template-columns:1fr 1fr;gap:9px}.actionbar .btn:first-child{grid-column:1/-1}.actionbar .btn{font-size:12px;padding:12px 7px}.overview{padding:20px}.meter-info .big{font-size:27px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<div class="shell" id="app">
+  <header class="hero">
+    <div class="brand"><div class="crest" aria-hidden="true">🐴</div><div><div class="eyebrow">Adventurer Conqueror King System</div><h1>ACKS Asinelli</h1><p class="subtitle">Il carico del gruppo, sempre sotto controllo.</p></div></div>
+    <div class="auth-area"><button type="button" id="soundToggle" class="btn ghost small" data-action="toggle-sound" aria-label="Disattiva audio" aria-pressed="true">🔊 Audio</button><div class="tag" id="syncStatus"><span class="dot"></span> Caricamento…</div><button id="authButton" class="btn ghost small hidden" data-action="auth"></button></div>
+  </header>
+  <div class="barhead"><span class="section-label">Animali e contenitori</span><span class="mini-note" id="groupSummary"></span></div>
+  <nav class="donkey-tabs" id="tabs" aria-label="Scegli animale o contenitore"></nav>
+  <div id="emptyCloud" class="blocked hidden">Nessun contenitore registrato. Il Quartiermastro può accedere e inizializzare il registro.</div>
+  <main id="mainContent">
+    <section class="panel overview" aria-label="Capacità di carico">
+      <div class="overview-top"><div><div class="eyebrow" id="containerKind">Asino · animale da soma</div><h2 class="donkey-name" id="donkeyName">Asino 1</h2><span class="mini-note" id="itemCount">0 oggetti</span></div><button class="btn secondary small" id="renameButton" data-action="rename">✎ Modifica</button></div>
+      <div class="meter-info"><div><span class="big" id="currentLoad">0</span> <span class="unit" id="maxLoadText">/ 30 stone</span></div><span class="mini-note" id="normalLoadWrap">Limite normale: <strong style="color:var(--cream)" id="normalLimitText">15 st</strong></span></div>
+      <div class="meter" role="progressbar" aria-label="Peso trasportato" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" id="meter"><div class="meter-fill" id="meterFill" style="width:0"></div><div class="meter-mark" id="meterMark"></div></div>
+      <div class="meter-labels" id="meterLabels"><span>0 st</span><span id="normalLoadLabel">15 st · carico normale</span><span id="maxLoadLabel">30 st · massimo</span></div>
+      <div class="status-line"><span class="status-text" id="loadStatus">✓ Carico normale</span><span class="mini-note" id="loadDetail">30 stone disponibili</span></div>
+    </section>
+    <section class="panel items-panel" aria-label="Oggetti trasportati"><div class="items-heading"><h2>Oggetti contenuti</h2><span class="items-headcount" id="ownerSummary">Seleziona un oggetto per gestirlo</span></div><div id="itemsList"></div></section>
+    <div class="actionbar"><button class="btn" data-action="add-item" id="addItemButton">＋ Aggiungi oggetto</button><button class="btn secondary" data-action="remove-item" id="removeItemButton">− Rimuovi oggetto</button><button class="btn secondary" data-action="move-item" id="moveItemButton">⇄ Sposta altrove</button></div>
+  </main>
+  <footer class="bottom-note"><span>ACKS II Revised · Animali da soma e contenitori · v1.3.0</span><span class="backup-tools"><button class="linkbtn" data-action="export">Esporta backup</button><button class="linkbtn" id="importButton" data-action="import">Importa backup</button></span></footer>
+</div>
+<dialog id="modal" aria-label="Gestione oggetti"><div class="modal-inner"><h2 class="modal-title" id="modalTitle"></h2><p class="modal-sub" id="modalSub"></p><form id="modalForm"><div class="fields" id="modalFields"></div><div class="form-error" id="modalError" role="alert"></div><div class="modal-actions"><button type="button" class="btn ghost" id="modalCancel">Annulla</button><button type="submit" class="btn" id="modalConfirm">Conferma</button></div></form></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept="application/json,.json" class="hidden">
+<script type="module">
+/*
+ * ACKS ASINELLI v1.3.0 — CONFIGURAZIONE CLOUD
+ * Lascia i campi vuoti per la modalità locale (nessuna sincronizzazione).
+ * Per la sincronizzazione online inserisci qui i parametri WEB di Firebase
+ * (Project settings > Your apps > Web app) e configura Realtime Database.
+ * Il file README spiega la protezione delle scritture tramite Firebase Auth.
+ * Non inserire mai password o chiavi private in questo file.
+ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCMg5gDVjtgGjazb6nivnJAv0JravrL_xk",
+  authDomain: "acks-asinelli.firebaseapp.com",
+  projectId: "acks-asinelli",
+  appId: "1:194141172523:web:33b14bb8cdf5458d4acb6e"
+};
+const ANIMAL_TYPES = [
+  {id:"donkey",name:"Asino",normal:15,max:30,icon:"🐴"},
+  {id:"mule",name:"Mulo",normal:25,max:50,icon:"🐴"},
+  {id:"camel",name:"Cammello",normal:30,max:60,icon:"🐪"},
+  {id:"horse-light",name:"Cavallo leggero",normal:20,max:40,icon:"🐎"},
+  {id:"horse-medium",name:"Cavallo medio",normal:30,max:60,icon:"🐎"},
+  {id:"horse-heavy",name:"Cavallo pesante",normal:40,max:80,icon:"🐎"},
+  {id:"horse-steppe",name:"Cavallo delle steppe",normal:25,max:40,icon:"🐎"},
+  {id:"ox",name:"Bue",normal:45,max:90,icon:"🐂"},
+  {id:"elephant",name:"Elefante",normal:180,max:360,icon:"🐘"}
+];
+const TYPES = Object.fromEntries(ANIMAL_TYPES.map(x=>[x.id,x]));
+const CUSTOM_TYPE = "custom";
+function spec(c){
+  if(c?.type===CUSTOM_TYPE){const max=String(c.maxLoad??"").trim()===""?null:parseWeight(c.maxLoad);
+    return {name:"Contenitore personalizzato",normal:null,max,icon:"📦",custom:true};}
+  return TYPES[c?.type]||TYPES.donkey;
+}
+function typeOptions(selected){return [...ANIMAL_TYPES.map(t=>`<option value="${t.id}" ${t.id===selected?"selected":""}>${escapeHtml(t.name)} · ${t.normal}/${t.max} st</option>`),`<option value="custom" ${selected===CUSTOM_TYPE?"selected":""}>📦 Contenitore personalizzato</option>`].join("");}
+const DB_PATH = "acksAsinelli/v1";
+const STORAGE_KEY = "acks-asinelli-v1"; // Non cambiare: conserva i vecchi salvataggi
+const OWNERS = [
+  {name:"Gruppo",className:"owner-gruppo"},
+  {name:"Ka-Balth",className:"owner-kabalth"},
+  {name:"Seville",className:"owner-seville"},
+  {name:"Sissor",className:"owner-sissor"},
+  {name:"Esperya",className:"owner-esperya"},
+  {name:"Thalion",className:"owner-thalion"}
+];
+function ownerDefinition(name){return OWNERS.find(o=>o.name.toLocaleLowerCase("it")===String(name??"").trim().toLocaleLowerCase("it"));}
+function canonicalOwner(name){const clean=String(name??"").trim();return ownerDefinition(clean)?.name||clean;}
+function ownerBadge(name){const label=canonicalOwner(name)||"Gruppo";const owner=ownerDefinition(label);return `<span class="owner-chip ${owner?.className||"owner-other"}">${escapeHtml(label)}</span>`;}
+
+const SELECTED_KEY = "acks-asinelli-v1-selected";
+const CLOUD_CACHE_KEY = "acks-asinelli-v1-cloud-cache";
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const uid = () => "id-"+(typeof crypto!=="undefined"&&crypto.randomUUID ? crypto.randomUUID():Date.now().toString(36)+"-"+Math.random().toString(36).slice(2));
+const makeContainer = (id, name, type="donkey", maxLoad="") => ({id,type,name,items:{},...(type===CUSTOM_TYPE?{maxLoad:String(maxLoad??"")}:{} )});
+const makeDonkey = (id="asino-1",name="Asino 1") => makeContainer(id,name,"donkey");
+// Inventario iniziale ricostruito dal foglio del quartiermastro (18/11/2026).
+// I pesi sono per riga; i barili a metà sono stimati a 9 st ciascuno.
+const QUARTERMASTER_ITEMS = [
+  ["Corda (50 piedi)","1","Gruppo"],
+  ["Razioni Thalion (7)","1","Thalion"],
+  ["Razioni Sissor (7)","1","Sissor"],
+  ["Sacco grande vuoto 1 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 2 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 3 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 4 (capacità 6 st)","1/6","Gruppo"],
+  ["Sacco grande vuoto 5 (capacità 6 st)","1/6","Gruppo"],
+  ["Razioni Esperya (3)","1/2","Esperya"],
+  ["Torce Ka-Balth (6)","1","Ka-Balth"],
+  ["Razioni Ka-Balth (2)","1","Ka-Balth"],
+  ["Daga Ka-Balth","1/6","Ka-Balth"],
+  ["Warhammer Ka-Balth","1/6","Ka-Balth"],
+  ["Lancia Ka-Balth","1","Ka-Balth"],
+  ["Spada Thalion","1/6","Thalion"],
+  ["Tende (3)","3","Gruppo"],
+  ["Lanterna","1/6","Gruppo"],
+  ["Fiasche olio (2)","1/6","Gruppo"],
+  ["Fiasche olio magico (2)","1/6","Gruppo"]
+];
+function quartermasterState(){
+  const toto=makeDonkey("asino-1","Asin-Toto"), tomatico=makeDonkey("asino-2","Asin-Tomatico"), bauletto=makeDonkey("asino-3","Bauletto");
+  toto.items.barile_acqua_1={id:"barile_acqua_1",name:"Barile d’acqua 1 (metà pieno)",weight:"9",owner:"Gruppo"};
+  tomatico.items.barile_acqua_2={id:"barile_acqua_2",name:"Barile d’acqua 2 (metà pieno)",weight:"9",owner:"Gruppo"};
+  QUARTERMASTER_ITEMS.forEach(([name,weight,owner],i)=>{const id="qm_"+(i+1);bauletto.items[id]={id,name,weight,owner};});
+  return {version:1,containers:{"asino-1":toto,"asino-2":tomatico,"asino-3":bauletto}};
+}
+const initialState = () => quartermasterState();
+const cloudMode = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+let firebase = null, db = null, auth = null, authUser = null, cloudConnected = false, cloudReceived = false, connectionError = "", accessAllowed = false;
+let state = cloudMode ? load(CLOUD_CACHE_KEY,{version:1,containers:{}}) : load(STORAGE_KEY,initialState());
+if(!cloudMode && Object.keys(state.containers||{}).length===1 && state.containers["asino-1"] && !Object.keys(state.containers["asino-1"].items||{}).length){
+  state=quartermasterState();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+}
+let selectedDonkey = localStorage.getItem(SELECTED_KEY)||"asino-1", selectedItem = null, dialogMode = "", modalSubmit = null, toastTimer;
+function load(key,fallback){try{return sanitizeState(JSON.parse(localStorage.getItem(key)))??fallback;}catch{return fallback}}
+function sanitizeState(raw){
+  if(!raw||typeof raw!=="object"||!raw.containers||typeof raw.containers!=="object")return null;
+  const containers={};
+  for(const [key,value] of Object.entries(raw.containers)){
+    if(!value||typeof value!=="object")continue;
+    const id=String(key).slice(0,100);
+    if(!/^[a-zA-Z0-9_-]+$/.test(id))continue;
+    const items={};
+    for(const [itemKey,item] of Object.entries(value.items||{})){
+      if(!item||typeof item!=="object"||!/^[a-zA-Z0-9_-]+$/.test(itemKey))continue;
+      const weight=String(item.weight??"0").slice(0,50);
+      if(parseWeight(weight)===null)continue;
+      items[itemKey]={id:itemKey,name:String(item.name??"Oggetto").slice(0,120),weight,owner:String(item.owner??"Gruppo").slice(0,80)};
+    }
+    const type=String(value.type||"donkey");
+    const validType=type===CUSTOM_TYPE||!!TYPES[type] ? type : "donkey";
+    let maxLoad="";
+    if(validType===CUSTOM_TYPE){maxLoad=String(value.maxLoad??"").trim().slice(0,50);
+      if(maxLoad!==""&&parseWeight(maxLoad)===null)maxLoad="";}
+    containers[id]={id,name:String(value.name??"Asino").slice(0,80),type:validType,items,...(validType===CUSTOM_TYPE?{maxLoad}:{})};
+  }
+  return {version:1,containers};
+}
+function parseWeight(raw){
+  const s=String(raw).trim().replace(/,/g,".").replace(/\s+/g," ");
+  let n;
+  if(/^\d+\s+\d+\/\d+$/.test(s)){const m=s.match(/^(\d+)\s+(\d+)\/(\d+)$/);if(+m[3]===0)return null;n=+m[1]+(+m[2]/+m[3]);}
+  else if(/^\d+\/\d+$/.test(s)){const m=s.match(/^(\d+)\/(\d+)$/);if(+m[2]===0)return null;n=+m[1]/+m[2];}
+  else if(/^(\d+(\.\d+)?|\.\d+)$/.test(s))n=+s;
+  else return null;
+  return Number.isFinite(n)&&n>=0&&n<=100000 ? n:null;
+}
+function fmt(n){const rounded=Math.round(n*1e6)/1e6;const whole=Math.floor(rounded);const remain=rounded-whole;
+  if(remain<1e-6)return String(whole);
+  for(const d of [2,3,4,6,8,12,16,24,32,100]){const num=Math.round(remain*d);if(num>0&&num<d&&Math.abs(remain-num/d)<1e-6){return (whole?whole+" ":"")+num+"/"+d;}}
+  return new Intl.NumberFormat("it-IT",{maximumFractionDigits:3}).format(rounded);
+}
+function containers(){return Object.values(state.containers||{}).sort((a,b)=>a.id==="asino-1"?-1:b.id==="asino-1"?1:a.name.localeCompare(b.name,"it"))}
+function current(){return state.containers?.[selectedDonkey]||null}
+function allItems(c){return Object.values(c?.items||{}).sort((a,b)=>a.name.localeCompare(b.name,"it"))}
+function groupedItemsHtml(items){
+  const groups=new Map();
+  for(const item of items){
+    const owner=canonicalOwner(item.owner)||"Gruppo";
+    const key=owner.toLocaleLowerCase("it");
+    if(!groups.has(key))groups.set(key,{owner,items:[]});
+    groups.get(key).items.push(item);
+  }
+  const order=new Map(OWNERS.map((o,i)=>[o.name.toLocaleLowerCase("it"),i]));
+  return [...groups.entries()].sort(([ka,a],[kb,b])=>
+    (order.get(ka)??999)-(order.get(kb)??999)||a.owner.localeCompare(b.owner,"it")
+  ).map(([,g])=>{
+    const weight=g.items.reduce((sum,item)=>sum+(parseWeight(item.weight)||0),0);
+    const rows=g.items.map(item=>`<button type="button" class="item-row ${item.id===selectedItem?"selected":""}" data-action="select-item" data-id="${escapeHtml(item.id)}" aria-pressed="${item.id===selectedItem}"><span class="choice" aria-hidden="true"></span><span><span class="item-name">${escapeHtml(item.name)}</span></span><span class="item-weight">${escapeHtml(item.weight)} st</span><span class="edit-glyph" title="Seleziona, oppure modifica con doppio tocco" aria-hidden="true">✎</span></button>`).join("");
+    return `<section class="owner-section" aria-label="Oggetti di ${escapeHtml(g.owner)}"><div class="owner-section-head">${ownerBadge(g.owner)}<span class="owner-section-stats">${g.items.length} ${g.items.length===1?"voce":"voci"} · ${fmt(weight)} st</span></div>${rows}</section>`;
+  }).join("");
+}
+function loadSum(c){return allItems(c).reduce((s,i)=>s+(parseWeight(i.weight)||0),0)}
+function canEdit(){return !cloudMode || (!!authUser&&accessAllowed&&cloudConnected&&!connectionError)}
+function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2900)}
+function render(){
+  if(!state?.containers)state={version:1,containers:{}};
+  if(!state.containers[selectedDonkey])selectedDonkey=containers()[0]?.id||"";
+  const c=current();
+  $("tabs").innerHTML=containers().map(d=>`<button type="button" class="donkey-tab ${d.id===selectedDonkey?"active":""}" data-action="select-donkey" data-id="${escapeHtml(d.id)}" aria-current="${d.id===selectedDonkey?"page":"false"}"><span aria-hidden="true">${spec(d).icon}</span><span>${escapeHtml(d.name)}</span></button>`).join("")+(canEdit()?`<button type="button" class="donkey-tab new" data-action="add-donkey">＋ Aggiungi</button><button type="button" class="donkey-tab remove-tab" data-action="remove-donkey" ${current()?"":"disabled"} aria-label="Rimuovi animale o contenitore selezionato">− Rimuovi</button>`:"");
+  $("groupSummary").textContent=containers().length+" unità · "+fmt(containers().reduce((s,x)=>s+loadSum(x),0))+" st in totale";
+  $("mainContent").classList.toggle("hidden",!c);
+  $("emptyCloud").classList.toggle("hidden",!!c);
+  if(!c){$("emptyCloud").textContent=cloudMode?(canEdit()?"Il registro è vuoto. Aggiungi il primo animale o contenitore.":"Importa un backup JSON per inizializzare il registro condiviso."):"Nessun contenitore registrato.";}
+  if(c){
+    const weight=loadSum(c),items=allItems(c),info=spec(c),max=info.max,normal=info.normal;
+    const unlimited=info.custom&&max===null;
+    $("containerKind").textContent=info.custom?"Contenitore personalizzato":info.name+" · animale da soma";
+    $("donkeyName").textContent=c.name;
+    $("itemCount").textContent=items.length+" "+(items.length===1?"oggetto":"oggetti");
+    $("currentLoad").textContent=fmt(weight);
+    $("maxLoadText").textContent=unlimited?"stone · senza limite":"/ "+fmt(max)+" stone";
+    $("normalLoadWrap").classList.toggle("hidden",info.custom);
+    if(!info.custom)$("normalLimitText").textContent=fmt(normal)+" st";
+    $("meter").classList.toggle("hidden",unlimited);
+    $("meterLabels").classList.toggle("hidden",unlimited);
+    if(!unlimited){
+      $("meter").setAttribute("aria-valuemax",String(max));
+      $("meter").setAttribute("aria-valuenow",String(Math.round(weight*100)/100));
+      $("meterFill").style.width=Math.min(100,max>0?weight/max*100:100)+"%";
+      $("meterFill").className="meter-fill"+(weight>max?" bad":!info.custom&&weight>normal?" warn":"");
+      $("meterMark").classList.toggle("hidden",info.custom);
+      if(!info.custom)$("meterMark").style.left=(normal/max*100)+"%";
+      $("normalLoadLabel").textContent=info.custom?"":fmt(normal)+" st · carico normale";
+      $("maxLoadLabel").textContent=fmt(max)+" st · massimo";
+    }
+    let status,detail,style;
+    if(unlimited){status="✓ Nessun limite impostato";detail="Capacità libera";style="";}
+    else if(weight>max){status="✕ Limite massimo superato";detail="Eccedenza: "+fmt(weight-max)+" st";style="bad";}
+    else if(!info.custom&&weight>normal){status="⚠ Carico pesante · velocità dimezzata";detail="Margine al massimo: "+fmt(max-weight)+" st";style="warn";}
+    else if(info.custom){status="✓ Entro la capacità impostata";detail="Spazio disponibile: "+fmt(max-weight)+" st";style="";}
+    else{status="✓ Carico normale";detail="Margine al carico normale: "+fmt(normal-weight)+" st";style="";}
+    $("loadStatus").textContent=status;$("loadStatus").className="status-text "+style;$("loadDetail").textContent=detail;
+    if(!c.items?.[selectedItem])selectedItem=null;
+    $("ownerSummary").textContent=selectedItem?"Oggetto selezionato":"Seleziona un oggetto per gestirlo";
+    $("itemsList").innerHTML=items.length?groupedItemsHtml(items):`<div class="empty"><div class="empty-symbol">🎒</div><h3 class="empty-title">Qui non c'è ancora nulla</h3><p>Nessun oggetto registrato. Aggiungi il primo carico condiviso.</p>${canEdit()?`<button class="btn secondary small" data-action="add-item">＋ Aggiungi oggetto</button>`:""}</div>`;
+  }
+  $("renameButton").disabled=!canEdit();$("addItemButton").disabled=!canEdit();
+  $("removeItemButton").disabled=!canEdit()||!selectedItem;
+  $("moveItemButton").disabled=!canEdit()||!selectedItem||containers().length<2;
+  $("importButton").disabled=!canEdit();$("importButton").title=canEdit()?"Ripristina un backup":"Solo Quartiermastro";
+  const status=$("syncStatus");let statusText="",dot="";
+  if(!cloudMode){statusText="Locale · non sincronizzato";dot="";}
+  else if(connectionError){statusText="Accesso non autorizzato o errore cloud";dot="bad";}
+  else if(!cloudConnected){statusText=cloudReceived?"Offline · copia salvata":"Connessione cloud…";dot="";}
+  else{statusText=accessAllowed?"Online · inventario condiviso":"In attesa di autorizzazione";dot=accessAllowed?"good":"";}
+  status.innerHTML=`<span class="dot ${dot}"></span> ${escapeHtml(statusText)}`;
+  $("authButton").classList.toggle("hidden",!cloudMode);
+  $("authButton").textContent=authUser?"Il mio codice UID":"Connessione…";
+}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function storeSelected(){localStorage.setItem(SELECTED_KEY,selectedDonkey)}
+function patchLocal(patch){for(const [path,value] of Object.entries(patch)){
+    const parts=path.split("/"),leaf=parts.pop();let o=state;for(const p of parts){if(!o[p])o[p]={};o=o[p]}
+    if(value===null)delete o[leaf];else o[leaf]=value;
+  }saveLocal();render();}
+async function writePatch(patch){if(!canEdit()){toast("Questo dispositivo non è ancora autorizzato");return false;}
+  try { if(cloudMode){await firebase.applyPatch(patch);}else patchLocal(patch);return true;}
+  catch(e){toast("Salvataggio non riuscito: "+(e?.code||e?.message||"errore"));return false;}
+}
+function openDialog({title,sub="",fields="",confirm="Conferma",onSubmit}){
+  $("modalTitle").textContent=title;$("modalSub").textContent=sub;$("modalFields").innerHTML=fields;$("modalConfirm").textContent=confirm;$("modalError").textContent="";$("modalConfirm").disabled=false;modalSubmit=onSubmit;$("modal").showModal();$("modalFields").querySelector("input,select")?.focus();
+}
+function field(name,title,value="",opts={}){return `<label class="field">${escapeHtml(title)}<input id="form-${escapeHtml(name)}" name="${escapeHtml(name)}" type="${opts.type||"text"}" value="${escapeHtml(value)}" maxlength="${opts.maxlength||100}" ${opts.placeholder?`placeholder="${escapeHtml(opts.placeholder)}"`:""} ${opts.autocomplete?`autocomplete="${opts.autocomplete}"`:"autocomplete=off"} ${opts.list?`list="${escapeHtml(opts.list)}"`:""} ${opts.required?"required":""}></label>`}
+function ownerField(value=""){
+  return `<div class="field owner-field"><label for="form-owner">Proprietario</label><div class="owner-combo"><input id="form-owner" name="owner" type="text" value="${escapeHtml(value)}" maxlength="80" placeholder="Scegli o scrivi un proprietario" autocomplete="off" aria-haspopup="listbox" aria-controls="owner-options" aria-expanded="false" required><button type="button" class="owner-toggle" id="ownerToggle" aria-controls="owner-options" aria-expanded="false" aria-label="Apri elenco proprietari">⌄</button></div><div class="owner-options hidden" id="owner-options" role="listbox" aria-label="Scegli proprietario"></div><div class="owner-picker-hint">Scegli un nome dall’elenco oppure scrivine uno nuovo.</div></div>`;
+}
+function showOwnerMenu(filter=false){const menu=$("owner-options"),input=$("form-owner"),toggle=$("ownerToggle");if(!menu||!input)return;
+  const query=filter?input.value.trim().toLocaleLowerCase("it"):"";const matches=OWNERS.filter(o=>!query||o.name.toLocaleLowerCase("it").includes(query));
+  menu.innerHTML=matches.map(o=>`<button type="button" class="owner-option" role="option" data-owner-choice="${escapeHtml(o.name)}">${ownerBadge(o.name)}</button>`).join("")+(matches.length?"":`<p class="owner-custom-hint">Puoi usare «${escapeHtml(input.value.trim())}» come nome libero.</p>`);
+  menu.classList.remove("hidden");input.setAttribute("aria-expanded","true");toggle?.setAttribute("aria-expanded","true");
+}
+function hideOwnerMenu(){const menu=$("owner-options");menu?.classList.add("hidden");$("form-owner")?.setAttribute("aria-expanded","false");$("ownerToggle")?.setAttribute("aria-expanded","false");}
+function ownerMenuVisible(){return !!$("owner-options")&&!$("owner-options").classList.contains("hidden");}
+
+const SOUND_KEY="acks-asinelli-sound-enabled";
+let soundEnabled=localStorage.getItem(SOUND_KEY)!=="false";
+const donkeySound=new Audio("./sfxmint-donkey-bray-03.wav");donkeySound.preload="auto";
+function updateSoundToggle(){const b=$("soundToggle");if(!b)return;b.textContent=soundEnabled?"🔊 Audio":"🔇 Muto";b.setAttribute("aria-pressed",String(soundEnabled));b.setAttribute("aria-label",soundEnabled?"Disattiva audio":"Attiva audio");}
+function playDonkeyBray(){if(!soundEnabled)return;try{donkeySound.pause();donkeySound.currentTime=0;const p=donkeySound.play();if(p?.catch)p.catch(()=>{});}catch(e){}}
+updateSoundToggle();
+function openAddItem(item=null){const c=current();if(!c||!canEdit())return;const edit=!!item;
+  openDialog({title:edit?"Modifica oggetto":"Aggiungi oggetto",sub:edit?"Aggiorna i dati del carico.":"Oggetto destinato a "+c.name+".",fields:field("name","Nome oggetto",item?.name||"",{required:true,maxlength:120,placeholder:"Es. Corda di canapa"})+field("weight","Peso (stone)",item?.weight??"",{required:true,placeholder:"Es. 1/6, 1 o 2 1/2"})+ownerField(item?.owner??""),confirm:edit?"Salva modifiche":"Aggiungi oggetto",onSubmit:async()=>{
+    const name=$("form-name").value.trim(),weight=$("form-weight").value.trim(),owner=canonicalOwner($("form-owner").value.trim());
+    if(!name)throw Error("Inserisci un nome.");if(parseWeight(weight)===null)throw Error("Peso non valido. Usa 1/6, 0,5, 2 1/2 oppure 1.");
+    if(!owner)throw Error("Inserisci un proprietario.");
+    const id=item?.id||uid();if(await writePatch({[`containers/${c.id}/items/${id}`]:{id,name,weight,owner}})){selectedItem=id;render();if(!edit)playDonkeyBray();return true;}return false;
+  }});
+}
+function containerFields(c=null){
+  const type=c?.type||"donkey",label=c?.name||"Asino "+(containers().filter(x=>x.type==="donkey").length+1);
+  const max=c?.maxLoad??"";
+  return field("name","Nome",label,{required:true,maxlength:80,placeholder:"Es. Frizzo, Baule dei tesori, Deposito"})+
+    `<label class="field">Tipo<select id="form-type">${typeOptions(type)}</select></label>`+
+    `<div class="field ${type===CUSTOM_TYPE?"":"hidden"}" id="customCapacity"><label for="form-maxLoad">Limite massimo (stone) · facoltativo</label><input id="form-maxLoad" type="text" value="${escapeHtml(max)}" maxlength="50" placeholder="Es. 20, 200 oppure vuoto"><span class="owner-picker-hint">Vuoto = senza limite. Puoi modificarlo in ogni momento.</span></div>`+
+    `<p class="tip ${type===CUSTOM_TYPE?"hidden":""}" id="animalLimits"></p>`;
+}
+function updateContainerFields(previousType=null){
+  const type=$("form-type")?.value||"donkey",custom=type===CUSTOM_TYPE;
+  $("customCapacity")?.classList.toggle("hidden",!custom);
+  $("animalLimits")?.classList.toggle("hidden",custom);
+  if(!custom){const t=TYPES[type];if(t)$("animalLimits").textContent="Carico normale: "+t.normal+" st · massimo: "+t.max+" st (ACKS II Revised)";}
+  if(previousType&&$("form-name")?.dataset.autoName==="true"){
+    const n=containers().filter(x=>x.type===type).length+1;
+    const name=custom?"Baule "+n:TYPES[type].name+" "+n;
+    $("form-name").value=name;
+  }
+}
+function readContainerFields(){
+  const name=$("form-name").value.trim(),type=$("form-type").value;
+  if(!name)throw Error("Inserisci un nome.");
+  if(type!==CUSTOM_TYPE&&!TYPES[type])throw Error("Tipo non riconosciuto.");
+  const maxLoad=type===CUSTOM_TYPE?$("form-maxLoad").value.trim():"";
+  if(type===CUSTOM_TYPE&&maxLoad!==""&&(parseWeight(maxLoad)===null||parseWeight(maxLoad)===0))throw Error("Inserisci una capacità positiva, oppure lascia vuoto per nessun limite.");
+  return {name,type,maxLoad};
+}
+function renameDonkey(){const c=current();if(!c||!canEdit())return;
+  openDialog({title:"Modifica animale o contenitore",sub:"Cambia il nome, il tipo o la capacità senza perdere gli oggetti.",fields:containerFields(c),confirm:"Salva modifiche",onSubmit:async()=>{
+    const {name,type,maxLoad}=readContainerFields();
+    // Sostituire l'intero oggetto mantiene inventario e proprietà nello stesso percorso DB.
+    return writePatch({[`containers/${c.id}/name`]:name,[`containers/${c.id}/type`]:type,[`containers/${c.id}/maxLoad`]:type===CUSTOM_TYPE?maxLoad:null});
+  }});updateContainerFields();
+}
+function addDonkey(){if(!canEdit())return;
+  openDialog({title:"Aggiungi animale o contenitore",sub:"Scegli un animale del manuale oppure un baule, una carovana o un deposito con capacità personalizzata.",fields:containerFields(),confirm:"Aggiungi",onSubmit:async()=>{
+    const {name,type,maxLoad}=readContainerFields(),id=uid();
+    if(await writePatch({[`containers/${id}`]:makeContainer(id,name,type,maxLoad)})){
+      selectedDonkey=id;selectedItem=null;storeSelected();render();playDonkeyBray();return true;}return false;
+  }});
+  $("form-name").dataset.autoName="true";
+  updateContainerFields();
+}
+function removeDonkey(){
+  const c=current();if(!c||!canEdit())return;
+  const items=allItems(c),count=items.length,weight=fmt(loadSum(c));
+  const description=count?`Contiene ${count} ${count===1?"oggetto":"oggetti"} per un totale di ${weight} stone. Eliminando questo elemento verranno eliminati ANCHE tutti i suoi oggetti dal registro.`:"Non contiene oggetti.";
+  openDialog({title:"Rimuovi animale o contenitore",sub:"Vuoi eliminare definitivamente «"+c.name+"»?",fields:`<p class="tip" style="color:var(--red);font-weight:700">${description}</p><p class="tip">Per conservare gli oggetti, annulla e spostali prima su un altro animale o contenitore. Puoi anche esportare un backup.</p>`,confirm:"Elimina definitivamente",onSubmit:async()=>{
+    if(await writePatch({[`containers/${c.id}`]:null})){
+      selectedDonkey="";selectedItem=null;storeSelected();render();toast("Elemento rimosso");return true;
+    }return false;
+  }});
+}
+function removeItem(){const c=current(),item=c?.items?.[selectedItem];if(!item||!canEdit())return;
+  openDialog({title:"Rimuovi oggetto",sub:"Vuoi rimuovere «"+item.name+"» dall'inventario di "+c.name+"?",fields:`<p class="tip">L'oggetto sarà eliminato dal registro, non spostato altrove.</p>`,confirm:"Rimuovi oggetto",onSubmit:async()=>{if(await writePatch({[`containers/${c.id}/items/${item.id}`]:null})){selectedItem=null;render();return true;}return false;}})}
+function moveItem(){const c=current(),item=c?.items?.[selectedItem];if(!item||!canEdit())return;
+  const destinations=containers().filter(x=>x.id!==c.id);if(!destinations.length){toast("Aggiungi un altro animale o contenitore per spostare oggetti");return;}
+  openDialog({title:"Sposta altrove",sub:"Sposta «"+item.name+"» da "+c.name+" a un altro animale o contenitore.",fields:`<label class="field">Destinazione<select id="form-destination">${destinations.map(d=>`<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)}</option>`).join("")}</select></label>`,confirm:"Sposta oggetto",onSubmit:async()=>{
+    const to=$("form-destination").value;if(!state.containers[to]||to===c.id)throw Error("Destinazione non valida.");
+    if(await writePatch({[`containers/${c.id}/items/${item.id}`]:null,[`containers/${to}/items/${item.id}`]:{...item}})){selectedDonkey=to;selectedItem=item.id;storeSelected();render();return true;}return false;
+  }});
+}
+function downloadBackup(){const text=JSON.stringify({app:"acks-asinelli",exportedAt:new Date().toISOString(),data:state},null,2);const blob=new Blob([text],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="ACKS-Asinelli-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function importBackup(file){if(!canEdit())return;let raw;try{raw=JSON.parse(await file.text());}catch{toast("File JSON non valido");return;}const imported=sanitizeState(raw.data||raw);if(!imported||!Object.keys(imported.containers).length){toast("Backup non riconosciuto o vuoto");return;}
+  if(!confirm("Importare questo backup? Sostituirà TUTTI gli animali, i contenitori e gli oggetti presenti in "+(cloudMode?"cloud":"questo browser")+"."))return;
+  try{if(cloudMode){await firebase.replaceState(imported);}else{state=imported;saveLocal();selectedItem=null;render();}toast("Backup importato");}catch(e){toast("Importazione non riuscita: "+(e?.code||e?.message||"errore"))}
+}
+function login(){
+  if(!cloudMode)return;
+  if(!authUser){toast("Attendi il collegamento a Firebase");return;}
+  openDialog({title:"Identificativo del dispositivo",sub:"Copia questo UID e autorizzalo nelle regole Firestore. Non è una password.",fields:field("uid","UID Firebase",authUser.uid,{required:true}),confirm:"Copia UID",onSubmit:async()=>{try{await navigator.clipboard.writeText(authUser.uid);}catch{prompt("Copia il tuo UID",authUser.uid);}return true;}});
+}
+$("modalFields").addEventListener("click",e=>{
+  const choice=e.target.closest("[data-owner-choice]");if(choice){$("form-owner").value=choice.dataset.ownerChoice;hideOwnerMenu();return;}
+  if(e.target.closest("#ownerToggle")){if(ownerMenuVisible())hideOwnerMenu();else showOwnerMenu();return;}
+  if(e.target.id==="form-owner")showOwnerMenu();
+});
+$("modalFields").addEventListener("input",e=>{if(e.target.id==="form-owner")showOwnerMenu(true);if(e.target.id==="form-name")e.target.dataset.autoName="false";});
+$("modalFields").addEventListener("change",e=>{if(e.target.id==="form-type")updateContainerFields("changed");});
+$("modalFields").addEventListener("keydown",e=>{
+  if(e.target.id!=="form-owner")return;
+  if(e.key==="Escape"&&ownerMenuVisible()){e.preventDefault();e.stopPropagation();hideOwnerMenu();}
+  else if(e.key==="ArrowDown"&&!ownerMenuVisible()){e.preventDefault();showOwnerMenu();}
+});
+$("modal").addEventListener("click",e=>{if(!e.target.closest(".owner-field"))hideOwnerMenu();});
+$("modalCancel").addEventListener("click",()=>$("modal").close());
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))$("modal").close()});
+$("modalForm").addEventListener("submit",async e=>{e.preventDefault();if(!modalSubmit)return;$("modalConfirm").disabled=true;$("modalError").textContent="";
+  try{const success=await modalSubmit();if(success)$("modal").close();}catch(err){$("modalError").textContent=err.message||"Controlla i campi";}finally{$("modalConfirm").disabled=false;}
+});
+$("app").addEventListener("click",e=>{const b=e.target.closest("[data-action]");if(!b||b.disabled)return;const action=b.dataset.action;
+  switch(action){case "select-donkey":selectedDonkey=b.dataset.id;selectedItem=null;storeSelected();render();break;
+    case "select-item":{const id=b.dataset.id;if(selectedItem===id&&canEdit())openAddItem(current()?.items?.[id]);else{selectedItem=id;render();}break;}
+    case "add-donkey":addDonkey();break;case "remove-donkey":removeDonkey();break;case "rename":renameDonkey();break;case "add-item":openAddItem();break;
+    case "remove-item":removeItem();break;case "move-item":moveItem();break;case "auth":login();break;
+    case "toggle-sound":soundEnabled=!soundEnabled;localStorage.setItem(SOUND_KEY,String(soundEnabled));updateSoundToggle();break;case "export":downloadBackup();break;case "import":$("importFile").click();break;
+  }
+});
+$("importFile").addEventListener("change",async e=>{const file=e.target.files?.[0];if(file)await importBackup(file);e.target.value=""});
+async function initCloud(){
+ try{
+  const CDN="https://www.gstatic.com/firebasejs/10.12.2/";
+  const [appModule,dbModule,authModule]=await Promise.all([import(CDN+"firebase-app.js"),import(CDN+"firebase-firestore.js"),import(CDN+"firebase-auth.js")]);
+  const app=appModule.initializeApp(FIREBASE_CONFIG);db=dbModule.getFirestore(app);auth=authModule.getAuth(app);
+  const inventoryRef=dbModule.doc(db,"campaigns","main");
+  firebase={
+    applyPatch:async patch=>dbModule.runTransaction(db,async tx=>{
+      const snap=await tx.get(inventoryRef);
+      if(!snap.exists())throw Error("Inventario non inizializzato: importa prima un backup");
+      const next=sanitizeState(snap.data().inventory);
+      if(!next)throw Error("Inventario remoto non valido");
+      for(const [path,value] of Object.entries(patch)){
+        const parts=path.split("/"),leaf=parts.pop();let obj=next;
+        for(const key of parts){if(!obj[key])obj[key]={};obj=obj[key];}
+        if(value===null)delete obj[leaf];else obj[leaf]=value;
+      }
+      tx.set(inventoryRef,{inventory:next,updatedAt:dbModule.serverTimestamp()});
+    }),
+    replaceState:async imported=>dbModule.setDoc(inventoryRef,{inventory:imported,updatedAt:dbModule.serverTimestamp()})
+  };
+  let unsubscribeInventory=null;
+  authModule.onAuthStateChanged(auth,async user=>{
+    authUser=user;render();
+    if(unsubscribeInventory){unsubscribeInventory();unsubscribeInventory=null;}
+    if(!user){try{await authModule.signInAnonymously(auth);}catch(e){connectionError=e.message;render();}return;}
+    unsubscribeInventory=dbModule.onSnapshot(inventoryRef,snap=>{
+    cloudConnected=true;cloudReceived=true;accessAllowed=true;connectionError="";
+    if(snap.exists()){
+      state=sanitizeState(snap.data().inventory)||{version:1,containers:{}};
+      localStorage.setItem(CLOUD_CACHE_KEY,JSON.stringify(state));
+    }else state={version:1,containers:{}};
+    render();
+    },err=>{cloudConnected=false;accessAllowed=false;connectionError=err?.message||"Permesso negato";render();});
+  });
+ }catch(e){connectionError=e?.message||"Connessione impossibile";render();}
+}
+render();if(cloudMode)void initCloud();
+</script>
+</body>
+</html>
